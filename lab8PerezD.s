@@ -13,12 +13,17 @@ arreglo: 		.word 0,0,0,0,0,0,0,0,0,0
 resultado:		.word 0,0,0,0,0,0,0,0,0,0
 N:				.word 10
 recibido:		.word 0
+prom:			.word 0
 
 @ MENSAJES
 bienvenida:		.asciz "Bienvenido\n"
-ingresar:		.asciz "Por favor ingrese un numero"
-mensajeError	.asciz "Ingreso erroneo"
+ingresar:		.asciz "Por favor ingrese un numero:\n"
+mensajeError:	.asciz "Ingreso erroneo\n"
+datosS:			.asciz "Numeros en el array de datos:\n"
+datosR:			.asciz "Numeros en el array de resultados:\n"
+promed:			.asciz "Promedio:\n"
 formato:		.asciz "%d\n"
+enter:			.asciz "\n"
 
 @ CUERPO DEL PROGRAMA
 
@@ -31,18 +36,17 @@ main:
 	stmfd sp!,{lr}
 	
 @ Bienvenida
-	mov r7, #3
-	mov r0, #0
+	mov r7, #4
+	mov r0, #1
 	mov r2, #12
 	ldr r1, =bienvenida
 	swi 0
 	
 	mov r5, #0
-	ldr r9, N
+	ldr r9,= N
 	ldr r9,[r9]
 	ldr r6,=arreglo
-	ldr r7,=resultado
-	ldr r8,[r7], #36
+	ldr r8,=resultado
 	mov r10, #0
 
 	
@@ -51,14 +55,14 @@ main:
 		beq prepararDatos
 		
 		@ Imprime mensaje
-		mov r7, #3
-		mov r0, #0
-		mov r2, #12
+		mov r7, #4
+		mov r0, #1
+		mov r2, #30
 		ldr r1, =ingresar
 		swi 0
 		
 		@ Ingreso de dato
-		ldr r0 =formato
+		ldr r0,=formato
 		ldr r1,=recibido
 		bl scanf
 		
@@ -67,11 +71,11 @@ main:
 		
 		ldr r4,=recibido
 		ldr r4,[r4]
-		add r9, r9, #1
-		
+		add r5, r5, #1
+		add r10, r10, r4
 		
 		str r4, [r6], #4
-		str r4, [r7], #-4
+		str r4, [r8], #4
 		
 		b capturaDatos
 	
@@ -79,6 +83,9 @@ main:
 		ldr r6,= arreglo
 		sub r6,r6,#4
 		mov r5, #0
+		
+		ldr r0,=datosS
+		bl puts
 		
 	
 	imprimirDatos:
@@ -97,27 +104,55 @@ main:
 	
 		ldr r6, =resultado
 		mov r7, #0
-		add r7,r6,#4
+		add r7,r6,#36
 		mov r5, #0
+		
+		ldr r0,=datosR
+		bl puts
 		
 	imprimirResultados:
 		
-		ldr r1, [r7], #-1
+		ldr r1, [r7], #-4
 		ldr r0,=formato
 		bl printf
 		
 		cmp r7,r6
 		bge imprimirResultados
 		
+		ldr r0, =promed
+		bl puts
+		mov r4, #0
+	
+	promedio:
+		
+	@ SE LLAMA A LA SUBRUTINA PROMEDIO
+		
+		subs r10, r10, #10
+		
+		add r4, r4, #1
+		
+		bhi promedio
+		
+		mov r1, r4
+		
+		ldr r0,=prom
+		str r4,[r0]
+		ldr r0,=formato
+		mov r1, r4
+		bl printf
+		
 		b salida
+		
 	
 	error:
 	
-		mov r7, #3
-		mov r0, #0
-		mov r2, #12
+		mov r7, #4
+		mov r0, #1
+		mov r2, #17
 		ldr r1, =mensajeError
 		swi 0
+		
+		bl scanf
 		
 		b capturaDatos
 	
@@ -128,5 +163,4 @@ main:
 		
 		ldmfd sp!,{lr}
 		bx lr
-	
 
